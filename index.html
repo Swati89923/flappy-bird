@@ -2,16 +2,124 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flappy Bird Clone</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #gameContainer {
+      position: relative;
+      margin: 20px 0;
+    }
+
+    #gameCanvas {
+      border: 2px solid #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      display: block;
+      background-color: #87CEEB;
+    }
+
+    #controls {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      background-color: #45a049;
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .dark-mode {
+      background-color: #121212;
+      color: #ffffff;
+    }
+
+    .dark-mode #gameCanvas {
+      border-color: #555;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .dark-mode button {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .dark-mode button:hover {
+      background-color: #444;
+    }
+
+    @media (max-width: 450px) {
+      #gameCanvas {
+        width: 100%;
+        height: auto;
+        max-height: 80vh;
+      }
+      
+      #controls {
+        flex-direction: column;
+        width: 80%;
+      }
+      
+      button {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="controls">
-  <button onclick="toggleSound()">🔊 Sound</button>
-  <button onclick="toggleTheme()">🌙 Dark Mode</button>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div id="controls">
+      <button id="soundBtn" onclick="toggleSound()">🔊 Sound: ON</button>
+      <button id="themeBtn" onclick="toggleTheme()">🌙 Theme: Light</button>
+    </div>
   </div>
 
   <script src="game.js"></script>
+  <script>
+    // These functions will be called by the buttons
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundBtn').textContent = 
+        `🔊 Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
+    }
+
+    function toggleTheme() {
+      darkTheme = !darkTheme;
+      document.body.classList.toggle('dark-mode');
+      document.getElementById('themeBtn').textContent = 
+        `🌙 Theme: ${darkTheme ? 'Dark' : 'Light'}`;
+    }
+  </script>
 </body>
 </html>
