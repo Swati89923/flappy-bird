@@ -7,19 +7,19 @@ let score = 0;
 let gameOver = false;
 
 const birdImg = new Image();
-birdImg.src = "assets/bird.png";
+birdImg.src = "bird.png";
 
 const bgImg = new Image();
-bgImg.src = "assets/background.png";
+bgImg.src = "background.png";
 
 const pipeTopImg = new Image();
-pipeTopImg.src = "assets/pipe_top.png";
+pipeTopImg.src = "pipe_top.png";
 
 const pipeBottomImg = new Image();
-pipeBottomImg.src = "assets/pipe_bottom.png";
+pipeBottomImg.src = "pipe_bottom.png";
 
-const jumpSound = new Audio("assets/jump.wav");
-const hitSound = new Audio("assets/hit.wav");
+const jumpSound = new Audio("jump.wav");
+const hitSound = new Audio("hit.wav");
 
 const bird = { x: 50, y: 200, width: 40, height: 30, velocity: 0 };
 const pipes = [];
