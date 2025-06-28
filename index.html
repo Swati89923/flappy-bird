@@ -1,98 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flappy Bird Clone</title>
   <style>
     body {
       margin: 0;
       padding: 0;
+      background-color: #70c5ce;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      background-color: #f0f0f0;
       font-family: Arial, sans-serif;
-      overflow: hidden;
+      transition: background-color 0.3s ease;
+    }
+
+    .dark-mode {
+      background-color: #1e1e1e;
     }
 
     #gameContainer {
       position: relative;
       margin: 20px 0;
+      text-align: center;
     }
 
-    #gameCanvas {
-      border: 2px solid #333;
+    canvas {
+      border: 3px solid #000;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      display: block;
-      background-color: #87CEEB;
+      background-color: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .dark-mode canvas {
+      border-color: #444;
+      background-color: #2a2a2a;
     }
 
     #controls {
-      margin-top: 15px;
+      margin: 15px 0;
       display: flex;
       gap: 10px;
     }
 
-    button {
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      background-color: #4CAF50;
-      color: white;
+    .control-btn {
+      padding: 8px 16px;
       font-size: 16px;
       cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    button:hover {
+    .control-btn:hover {
       background-color: #45a049;
       transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    button:active {
+    .control-btn:active {
       transform: translateY(0);
     }
 
-    .dark-mode {
-      background-color: #121212;
-      color: #ffffff;
-    }
-
-    .dark-mode #gameCanvas {
-      border-color: #555;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    }
-
-    .dark-mode button {
+    .dark-mode .control-btn {
       background-color: #333;
-      color: #fff;
     }
 
-    .dark-mode button:hover {
+    .dark-mode .control-btn:hover {
       background-color: #444;
-    }
-
-    @media (max-width: 450px) {
-      #gameCanvas {
-        width: 100%;
-        height: auto;
-        max-height: 80vh;
-      }
-      
-      #controls {
-        flex-direction: column;
-        width: 80%;
-      }
-      
-      button {
-        width: 100%;
-        margin-bottom: 5px;
-      }
     }
   </style>
 </head>
@@ -100,26 +84,55 @@
   <div id="gameContainer">
     <canvas id="gameCanvas" width="400" height="600"></canvas>
     <div id="controls">
-      <button id="soundBtn" onclick="toggleSound()">🔊 Sound: ON</button>
-      <button id="themeBtn" onclick="toggleTheme()">🌙 Theme: Light</button>
+      <button id="soundBtn" class="control-btn">🔊 Sound: ON</button>
+      <button id="themeBtn" class="control-btn">🌙 Theme: Light</button>
     </div>
   </div>
 
-  <script src="game.js"></script>
   <script>
-    // These functions will be called by the buttons
+    // Game state variables
+    let soundEnabled = true;
+    let darkTheme = false;
+
+    // DOM elements
+    const soundBtn = document.getElementById('soundBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const body = document.body;
+
+    // Toggle sound function
     function toggleSound() {
       soundEnabled = !soundEnabled;
-      document.getElementById('soundBtn').textContent = 
-        `🔊 Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
+      soundBtn.innerHTML = `🔊 Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
+      
+      // Example of playing a test sound when toggling
+      if (soundEnabled) {
+        const testSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3');
+        testSound.volume = 0.3;
+        testSound.play();
+      }
     }
 
+    // Toggle theme function
     function toggleTheme() {
       darkTheme = !darkTheme;
-      document.body.classList.toggle('dark-mode');
-      document.getElementById('themeBtn').textContent = 
-        `🌙 Theme: ${darkTheme ? 'Dark' : 'Light'}`;
+      body.classList.toggle('dark-mode');
+      themeBtn.innerHTML = `🌙 Theme: ${darkTheme ? 'Dark' : 'Light'}`;
     }
+
+    // Event listeners
+    soundBtn.addEventListener('click', toggleSound);
+    themeBtn.addEventListener('click', toggleTheme);
+
+    // Initialize game canvas
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Sample drawing to show the canvas works
+    ctx.fillStyle = '#4CAF50';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Flappy Bird Game', canvas.width/2, canvas.height/2);
+    ctx.textAlign = 'left';
   </script>
 </body>
 </html>
