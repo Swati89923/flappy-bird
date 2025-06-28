@@ -1,8 +1,8 @@
-// game.js - Mobile-friendly Flappy Bird
+// game.js - Fixed Sound and Updated Visuals
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Set canvas size based on device
+// Set canvas size
 function resizeCanvas() {
     const maxWidth = 400;
     const maxHeight = 600;
@@ -45,17 +45,34 @@ const bird = {
 
 const pipes = [];
 
-// Touch control variables
-let touchStartY = 0;
-let touchEndY = 0;
+// Load images
+const images = {
+    bird: new Image(),
+    background: new Image(),
+    pipeTop: new Image(),
+    pipeBottom: new Image()
+};
 
-// Initialize game
-function init() {
-    resetGame();
-    gameLoop();
-}
+// Set image sources
+images.bird.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/bird.png";
+images.background.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/background.png";
+images.pipeTop.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/pipe_top.png";
+images.pipeBottom.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/pipe_bottom.png";
 
-// Main game loop
+// Sound effects
+const sounds = {
+    flap: new Audio("https://raw.githubusercontent.com/swati89923/flappy-bird/main/jump.wav"),
+    point: new Audio("https://raw.githubusercontent.com/swati89923/flappy-bird/main/point.wav"),
+    hit: new Audio("https://raw.githubusercontent.com/swati89923/flappy-bird/main/hit.wav")
+};
+
+// Initialize sounds
+Object.values(sounds).forEach(sound => {
+    sound.volume = 0.5;
+    sound.preload = "auto";
+});
+
+// Game loop
 function gameLoop() {
     update();
     render();
@@ -115,27 +132,19 @@ function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw background
-    ctx.fillStyle = darkTheme ? "#1a2a3a" : "#70c5ce";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
 
     // Draw pipes
-    ctx.fillStyle = darkTheme ? "#4a7a4a" : "#4CAF50";
     pipes.forEach(pipe => {
-        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
-        ctx.fillRect(
-            pipe.x, 
-            pipe.topHeight + PIPE_GAP, 
-            PIPE_WIDTH, 
-            canvas.height - pipe.topHeight - PIPE_GAP
-        );
+        ctx.drawImage(images.pipeTop, pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+        ctx.drawImage(images.pipeBottom, pipe.x, pipe.topHeight + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.topHeight - PIPE_GAP);
     });
 
     // Draw bird
-    ctx.fillStyle = darkTheme ? "#ffcc00" : "#ff0000";
-    ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+    ctx.drawImage(images.bird, bird.x, bird.y, bird.width, bird.height);
 
     // Draw score
-    ctx.fillStyle = darkTheme ? "#ffffff" : "#000000";
+    ctx.fillStyle = "#000000";
     ctx.font = "24px Arial";
     ctx.fillText(`Score: ${score}`, 20, 30);
     ctx.fillText(`High: ${highScore}`, canvas.width - 120, 30);
@@ -170,20 +179,20 @@ function checkCollision(bird, pipe) {
 }
 
 function drawCenteredText(text, size, yOffset = 0) {
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 2;
     ctx.font = `${size}px Arial`;
     ctx.textAlign = "center";
+    ctx.strokeText(text, canvas.width / 2, canvas.height / 2 + yOffset);
     ctx.fillText(text, canvas.width / 2, canvas.height / 2 + yOffset);
     ctx.textAlign = "left";
 }
 
 function playSound(sound) {
-    if (soundEnabled) {
-        const audio = new Audio();
-        audio.src = sound === "flap" ? "https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" :
-                   sound === "point" ? "https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" :
-                   "https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3";
-        audio.volume = 0.3;
-        audio.play();
+    if (soundEnabled && sounds[sound]) {
+        sounds[sound].currentTime = 0;
+        sounds[sound].play().catch(e => console.log("Sound play failed:", e));
     }
 }
 
@@ -209,8 +218,6 @@ canvas.addEventListener("touchend", handleTouchEnd, {passive: false});
 
 function handleTouchStart(e) {
     e.preventDefault();
-    touchStartY = e.touches[0].clientY;
-    
     if (!gameStarted && !gameOver) {
         gameStarted = true;
         gameLoop();
@@ -221,9 +228,6 @@ function handleTouchStart(e) {
 
 function handleTouchEnd(e) {
     e.preventDefault();
-    touchEndY = e.changedTouches[0].clientY;
-    
-    // Only flap if game is running
     if (gameStarted && !gameOver) {
         bird.velocity = FLAP_STRENGTH;
         playSound("flap");
@@ -235,6 +239,7 @@ document.getElementById("soundBtn").addEventListener("click", () => {
     soundEnabled = !soundEnabled;
     document.getElementById("soundBtn").textContent = 
         `🔊 Sound: ${soundEnabled ? "ON" : "OFF"}`;
+    localStorage.setItem("flappySoundEnabled", soundEnabled);
 });
 
 document.getElementById("themeBtn").addEventListener("click", () => {
@@ -242,6 +247,7 @@ document.getElementById("themeBtn").addEventListener("click", () => {
     document.getElementById("themeBtn").textContent = 
         `🌙 Theme: ${darkTheme ? "Dark" : "Light"}`;
     document.body.classList.toggle("dark-mode");
+    localStorage.setItem("flappyDarkTheme", darkTheme);
 });
 
 // Keyboard controls
@@ -259,5 +265,22 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// Start the game
+// Load saved settings
+function loadSettings() {
+    const savedSound = localStorage.getItem("flappySoundEnabled");
+    const savedTheme = localStorage.getItem("flappyDarkTheme");
+    
+    if (savedSound !== null) soundEnabled = savedSound === "true";
+    if (savedTheme !== null) darkTheme = savedTheme === "true";
+    
+    document.getElementById("soundBtn").textContent = 
+        `🔊 Sound: ${soundEnabled ? "ON" : "OFF"}`;
+    document.getElementById("themeBtn").textContent = 
+        `🌙 Theme: ${darkTheme ? "Dark" : "Light"}`;
+    
+    if (darkTheme) document.body.classList.add("dark-mode");
+}
+
+// Initialize game
+loadSettings();
 init();
