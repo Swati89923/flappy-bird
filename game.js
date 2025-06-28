@@ -1,4 +1,4 @@
-// game.js - Fixed Sound and Updated Visuals
+// game.js - Final Working Version
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -31,8 +31,8 @@ let score = 0;
 let highScore = localStorage.getItem("flappyHighScore") || 0;
 let gameOver = false;
 let gameStarted = false;
-let soundEnabled = true;
-let darkTheme = false;
+let soundEnabled = localStorage.getItem("flappySoundEnabled") !== "false";
+let darkTheme = localStorage.getItem("flappyDarkTheme") === "true";
 
 // Game objects
 const bird = {
@@ -53,20 +53,25 @@ const images = {
     pipeBottom: new Image()
 };
 
-// Set image sources
-images.bird.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/bird.png";
-images.background.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/background.png";
-images.pipeTop.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/pipe_top.png";
-images.pipeBottom.src = "https://raw.githubusercontent.com/swati89923/flappy-bird/main/pipe_bottom.png";
+// Set image sources (using your GitHub hosted images)
+images.bird.src = "bird.png";
+images.background.src = "background.png";
+images.pipeTop.src = "pipe_top.png";
+images.pipeBottom.src = "pipe_bottom.png";
 
 // Sound effects
 const sounds = {
-    flap: new Audio("https://raw.githubusercontent.com/swati89923/flappy-bird/main/jump.wav"),
-    point: new Audio("https://raw.githubusercontent.com/swati89923/flappy-bird/main/point.wav"),
-    hit: new Audio("https://raw.githubusercontent.com/swati89923/flappy-bird/main/hit.wav")
+    flap: new Audio(),
+    point: new Audio(),
+    hit: new Audio()
 };
 
-// Initialize sounds
+// Initialize sounds (using free sound URLs)
+sounds.flap.src = "https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3";
+sounds.point.src = "https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3";
+sounds.hit.src = "https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3";
+
+// Set sound properties
 Object.values(sounds).forEach(sound => {
     sound.volume = 0.5;
     sound.preload = "auto";
@@ -191,8 +196,12 @@ function drawCenteredText(text, size, yOffset = 0) {
 
 function playSound(sound) {
     if (soundEnabled && sounds[sound]) {
-        sounds[sound].currentTime = 0;
-        sounds[sound].play().catch(e => console.log("Sound play failed:", e));
+        try {
+            sounds[sound].currentTime = 0;
+            sounds[sound].play().catch(e => console.log("Sound play prevented:", e));
+        } catch (e) {
+            console.log("Sound error:", e);
+        }
     }
 }
 
@@ -213,45 +222,44 @@ function resetGame() {
 }
 
 // Touch controls
-canvas.addEventListener("touchstart", handleTouchStart, {passive: false});
-canvas.addEventListener("touchend", handleTouchEnd, {passive: false});
-
-function handleTouchStart(e) {
+canvas.addEventListener("touchstart", function(e) {
     e.preventDefault();
     if (!gameStarted && !gameOver) {
         gameStarted = true;
         gameLoop();
     } else if (gameOver) {
         resetGame();
-    }
-}
-
-function handleTouchEnd(e) {
-    e.preventDefault();
-    if (gameStarted && !gameOver) {
+    } else {
         bird.velocity = FLAP_STRENGTH;
         playSound("flap");
     }
-}
+}, {passive: false});
 
 // Button controls
-document.getElementById("soundBtn").addEventListener("click", () => {
+document.getElementById("soundBtn").addEventListener("click", function() {
     soundEnabled = !soundEnabled;
-    document.getElementById("soundBtn").textContent = 
-        `🔊 Sound: ${soundEnabled ? "ON" : "OFF"}`;
     localStorage.setItem("flappySoundEnabled", soundEnabled);
+    this.textContent = `🔊 Sound: ${soundEnabled ? "ON" : "OFF"}`;
+    playSound("flap");
 });
 
-document.getElementById("themeBtn").addEventListener("click", () => {
+document.getElementById("themeBtn").addEventListener("click", function() {
     darkTheme = !darkTheme;
-    document.getElementById("themeBtn").textContent = 
-        `🌙 Theme: ${darkTheme ? "Dark" : "Light"}`;
-    document.body.classList.toggle("dark-mode");
     localStorage.setItem("flappyDarkTheme", darkTheme);
+    this.textContent = `🌙 Theme: ${darkTheme ? "Dark" : "Light"}`;
+    document.body.classList.toggle("dark-mode");
+    playSound("flap");
 });
+
+// Initialize theme
+if (darkTheme) {
+    document.body.classList.add("dark-mode");
+    document.getElementById("themeBtn").textContent = "🌙 Theme: Dark";
+}
+document.getElementById("soundBtn").textContent = `🔊 Sound: ${soundEnabled ? "ON" : "OFF"}`;
 
 // Keyboard controls
-document.addEventListener("keydown", (e) => {
+document.addEventListener("keydown", function(e) {
     if (e.code === "Space") {
         if (!gameStarted && !gameOver) {
             gameStarted = true;
@@ -265,22 +273,5 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// Load saved settings
-function loadSettings() {
-    const savedSound = localStorage.getItem("flappySoundEnabled");
-    const savedTheme = localStorage.getItem("flappyDarkTheme");
-    
-    if (savedSound !== null) soundEnabled = savedSound === "true";
-    if (savedTheme !== null) darkTheme = savedTheme === "true";
-    
-    document.getElementById("soundBtn").textContent = 
-        `🔊 Sound: ${soundEnabled ? "ON" : "OFF"}`;
-    document.getElementById("themeBtn").textContent = 
-        `🌙 Theme: ${darkTheme ? "Dark" : "Light"}`;
-    
-    if (darkTheme) document.body.classList.add("dark-mode");
-}
-
-// Initialize game
-loadSettings();
-init();
+// Start the game
+resetGame();
