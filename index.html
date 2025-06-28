@@ -12,7 +12,6 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
-            overflow: hidden;
             background-color: #70c5ce;
             display: flex;
             flex-direction: column;
@@ -20,6 +19,7 @@
             justify-content: center;
             height: 100vh;
             font-family: Arial, sans-serif;
+            overflow: hidden;
         }
         
         .dark-mode {
@@ -30,20 +30,13 @@
             position: relative;
             width: 100%;
             max-width: 400px;
-            margin: 0 auto;
         }
         
         #gameCanvas {
             display: block;
             width: 100%;
-            height: auto;
             max-height: 80vh;
             border: 2px solid #000;
-            touch-action: none;
-        }
-        
-        .dark-mode #gameCanvas {
-            border-color: #555;
         }
         
         #controls {
@@ -62,23 +55,12 @@
             border-radius: 5px;
             background-color: #4CAF50;
             color: white;
-            cursor: pointer;
-        }
-        
-        .dark-mode #controls button {
-            background-color: #333;
-        }
-        
-        @media (max-height: 600px) {
-            #gameCanvas {
-                max-height: 70vh;
-            }
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
         <div id="controls">
             <button id="soundBtn">🔊 Sound: ON</button>
             <button id="themeBtn">🌙 Theme: Light</button>
