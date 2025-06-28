@@ -1,6 +1,23 @@
-// game.js - Complete Flappy Bird Clone
+// game.js - Mobile-friendly Flappy Bird
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
+// Set canvas size based on device
+function resizeCanvas() {
+    const maxWidth = 400;
+    const maxHeight = 600;
+    const scale = Math.min(
+        window.innerWidth / maxWidth,
+        window.innerHeight / maxHeight
+    );
+    
+    canvas.width = maxWidth;
+    canvas.height = maxHeight;
+    canvas.style.width = (maxWidth * scale) + "px";
+    canvas.style.height = (maxHeight * scale) + "px";
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
 // Game settings
 const GRAVITY = 0.5;
@@ -8,7 +25,6 @@ const FLAP_STRENGTH = -8;
 const PIPE_SPEED = 2;
 const PIPE_GAP = 150;
 const PIPE_WIDTH = 60;
-const PIPE_FREQUENCY = 1500; // ms
 
 // Game state
 let score = 0;
@@ -17,7 +33,6 @@ let gameOver = false;
 let gameStarted = false;
 let soundEnabled = true;
 let darkTheme = false;
-let lastPipeTime = 0;
 
 // Game objects
 const bird = {
@@ -25,61 +40,37 @@ const bird = {
     y: canvas.height / 2,
     width: 34,
     height: 24,
-    velocity: 0,
-    gravity: GRAVITY,
-    flap: FLAP_STRENGTH
+    velocity: 0
 };
 
 const pipes = [];
 
-// Controls
-const keys = {};
-document.addEventListener("keydown", e => keys[e.code] = true);
-document.addEventListener("keyup", e => keys[e.code] = false);
-
-// Sound effects
-const sounds = {
-    flap: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"),
-    point: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"),
-    hit: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3")
-};
+// Touch control variables
+let touchStartY = 0;
+let touchEndY = 0;
 
 // Initialize game
 function init() {
-    // Set volume
-    Object.values(sounds).forEach(sound => sound.volume = 0.3);
-    
-    // Start game loop
     resetGame();
     gameLoop();
 }
 
 // Main game loop
-function gameLoop(timestamp) {
-    update(timestamp);
+function gameLoop() {
+    update();
     render();
-    requestAnimationFrame(gameLoop);
+    if (!gameOver) {
+        requestAnimationFrame(gameLoop);
+    }
 }
 
 // Update game state
-function update(timestamp) {
+function update() {
     if (!gameStarted || gameOver) return;
 
     // Bird physics
-    bird.velocity += bird.gravity;
+    bird.velocity += GRAVITY;
     bird.y += bird.velocity;
-
-    // Flap when Space is pressed
-    if (keys["Space"] && bird.velocity >= 0) {
-        bird.velocity = bird.flap;
-        playSound("flap");
-    }
-
-    // Generate pipes
-    if (timestamp - lastPipeTime > PIPE_FREQUENCY) {
-        pipes.push(createPipe());
-        lastPipeTime = timestamp;
-    }
 
     // Update pipes
     for (let i = pipes.length - 1; i >= 0; i--) {
@@ -105,6 +96,11 @@ function update(timestamp) {
         }
     }
 
+    // Generate new pipes
+    if (pipes.length === 0 || pipes[pipes.length-1].x < canvas.width - 200) {
+        pipes.push(createPipe());
+    }
+
     // Check boundaries
     if (bird.y + bird.height > canvas.height || bird.y < 0) {
         gameOver = true;
@@ -125,9 +121,7 @@ function render() {
     // Draw pipes
     ctx.fillStyle = darkTheme ? "#4a7a4a" : "#4CAF50";
     pipes.forEach(pipe => {
-        // Top pipe
         ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
-        // Bottom pipe
         ctx.fillRect(
             pipe.x, 
             pipe.topHeight + PIPE_GAP, 
@@ -148,14 +142,13 @@ function render() {
 
     // Draw messages
     if (!gameStarted) {
-        drawCenteredText("Press SPACE to start", 30);
-        drawCenteredText("Flap to fly through pipes", 20, 60);
+        drawCenteredText("Tap to start", 30);
     }
 
     if (gameOver) {
         drawCenteredText("GAME OVER", 40);
         drawCenteredText(`Score: ${score}`, 30, 50);
-        drawCenteredText("Press SPACE to restart", 20, 90);
+        drawCenteredText("Tap to restart", 20, 90);
     }
 }
 
@@ -185,8 +178,12 @@ function drawCenteredText(text, size, yOffset = 0) {
 
 function playSound(sound) {
     if (soundEnabled) {
-        sounds[sound].currentTime = 0;
-        sounds[sound].play();
+        const audio = new Audio();
+        audio.src = sound === "flap" ? "https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" :
+                   sound === "point" ? "https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" :
+                   "https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3";
+        audio.volume = 0.3;
+        audio.play();
     }
 }
 
@@ -204,45 +201,62 @@ function resetGame() {
     gameOver = false;
     gameStarted = false;
     pipes.length = 0;
-    lastPipeTime = 0;
 }
 
-// Handle space key to start/restart game
-document.addEventListener("keydown", e => {
-    if (e.code === "Space") {
-        if (!gameStarted && !gameOver) {
-            gameStarted = true;
-        } else if (gameOver) {
-            resetGame();
-        }
-    }
-});
+// Touch controls
+canvas.addEventListener("touchstart", handleTouchStart, {passive: false});
+canvas.addEventListener("touchend", handleTouchEnd, {passive: false});
 
-// Touch support for mobile
-canvas.addEventListener("touchstart", () => {
+function handleTouchStart(e) {
+    e.preventDefault();
+    touchStartY = e.touches[0].clientY;
+    
     if (!gameStarted && !gameOver) {
         gameStarted = true;
+        gameLoop();
     } else if (gameOver) {
         resetGame();
-    } else if (gameStarted) {
-        bird.velocity = bird.flap;
+    }
+}
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    touchEndY = e.changedTouches[0].clientY;
+    
+    // Only flap if game is running
+    if (gameStarted && !gameOver) {
+        bird.velocity = FLAP_STRENGTH;
         playSound("flap");
     }
-});
+}
 
-// Toggle sound
+// Button controls
 document.getElementById("soundBtn").addEventListener("click", () => {
     soundEnabled = !soundEnabled;
     document.getElementById("soundBtn").textContent = 
-        `Sound: ${soundEnabled ? "ON" : "OFF"}`;
+        `🔊 Sound: ${soundEnabled ? "ON" : "OFF"}`;
 });
 
-// Toggle theme
 document.getElementById("themeBtn").addEventListener("click", () => {
     darkTheme = !darkTheme;
     document.getElementById("themeBtn").textContent = 
-        `Theme: ${darkTheme ? "Dark" : "Light"}`;
+        `🌙 Theme: ${darkTheme ? "Dark" : "Light"}`;
     document.body.classList.toggle("dark-mode");
+});
+
+// Keyboard controls
+document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+        if (!gameStarted && !gameOver) {
+            gameStarted = true;
+            gameLoop();
+        } else if (gameOver) {
+            resetGame();
+        } else {
+            bird.velocity = FLAP_STRENGTH;
+            playSound("flap");
+        }
+    }
 });
 
 // Start the game
