@@ -1,20 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flappy Bird</title>
     <style>
-        body { margin: 0; text-align: center; }
-        canvas { border: 1px solid black; }
-        .dark-mode { background-color: #222; }
-        #controls { margin: 10px; }
-        button { padding: 8px 15px; margin: 0 5px; }
+        body {
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            overflow: hidden;
+            background-color: #70c5ce;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        .dark-mode {
+            background-color: #1a2a3a;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            border: 2px solid #000;
+            touch-action: none;
+        }
+        
+        .dark-mode #gameCanvas {
+            border-color: #555;
+        }
+        
+        #controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        #controls button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .dark-mode #controls button {
+            background-color: #333;
+        }
+        
+        @media (max-height: 600px) {
+            #gameCanvas {
+                max-height: 70vh;
+            }
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <div id="controls">
-        <button id="soundBtn">Sound: ON</button>
-        <button id="themeBtn">Theme: Light</button>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="controls">
+            <button id="soundBtn">🔊 Sound: ON</button>
+            <button id="themeBtn">🌙 Theme: Light</button>
+        </div>
     </div>
     <script src="game.js"></script>
 </body>
