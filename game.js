@@ -103,4 +103,7 @@ function showGameOver() {
   ctx.fillText("Press Enter to Restart", 100, 340);
 }
 
-draw();
+// ✅ Only run draw() after everything (images) is fully loaded
+window.onload = () => {
+  draw();
+};
